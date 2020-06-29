@@ -10,7 +10,7 @@ plot_frame(tf1);
 pt_in_tf0 = tf0*[1, 0, 0, 1]';
 plot_point(pt_in_tf0);
 
-%test quaternion transform from quaternion state
+%test quaternion tr
 tf_x0_x1 = state_to_transform(tf);
 plot_point(tf_x0_x1*pt_in_tf0);
 
