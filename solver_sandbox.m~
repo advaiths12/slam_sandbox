@@ -19,9 +19,8 @@ display(lobs);
 display("Jacobian wrt. State and Landmark");
 display(j2);
 
-syms x1 y1 x2 y2 lx1 ly1 lx2 ly2 theta1 theta2;
+syms x1 y1 x2 y2 l1 l2 theta1 theta2;
 state_1 = [x1, y1, theta1];
 state_2 = [x2, y2, theta2];
-measurements = [state_2(1:2)' - state_1(1:2)';
-        atan2(ly1 - y1, lx1 - x1)];
-j_state = jacobian(measurements, [x1, y1, theta1, x2, y2, theta2, lx1, ly1, lx2, ly2])
+odom = state_2(1:2) - state_1(1:2);
+j_state = jacobian(odom, [
