@@ -5,17 +5,16 @@ state_1 = [x2, y2, z2, p1, p2, p3, p4]';
 tf = get_tf_between_states(state_0, state_1);
 j1 = jacobian(tf, [x1, y1, z1, q1, q2, q3, q4, x2, y2, z2, p1, p2, p3, p4]);
 display("Transform function");
-tf
+display(tf);
 display("Jacobian of Transform wrt. State Space");
-j1
+display(j1);
 
 
 syms x y z qx qy qz qw;
 syms lx ly lz;
 lobs = get_landmark_obs_from_observer_and_landmark_state([lx; ly; lz], [x; y;z; qx; qy; qz; qw]);
-lobs
 j2 = jacobian(lobs, [x, y, z, qx, qy, qz, qw, lx, ly, lz]);
 display("Landmark Observation Function");
-lobs
+display(lobs);
 display("Jacobian wrt. State and Landmark");
-j2
+display(j2);
