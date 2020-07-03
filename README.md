@@ -4,7 +4,7 @@ Generally, they provide interfaces for quaternion conversion, frame visualizatio
 It is helpful in MATLAB to be able to generate Jacobians for any of these functions so they are created with the intent to be symbolically differentiable
 
 ### Heading SLAM
-Environment for spoofing odometry and landmark measurements in 2D. 
+Environment for spoofing odometry and landmark measurements in 2D. Spline trajectories with waypoints for easy testing/observation of covariances if provided.
 ![Alt text](images/spoof.png?raw=true "Title")
 
 ### Transform Sandbox
