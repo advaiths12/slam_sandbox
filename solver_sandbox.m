@@ -19,9 +19,12 @@ display(lobs);
 display("Jacobian wrt. State and Landmark");
 display(j2);
 
-syms x1 y1 x2 y2 lx1 ly1 lx2 ly2 theta1 theta2;
-state_1 = [x1, y1, theta1];
-state_2 = [x2, y2, theta2];
-measurements = [state_2(1:2)' - state_1(1:2)';
-        atan2(ly1 - y1, lx1 - x1)];
-j_state = jacobian(measurements, [x1, y1, theta1, x2, y2, theta2, lx1, ly1, lx2, ly2])
+syms x1 y1 x2 y2 lx1 ly1 real; %variables
+syms theta1 theta2 odomx1 odomy1 dist1 real; %factors
+state_1 = [x1, y1, lx1, ly1];
+state_2 = [x2, y2, lx1, ly1];
+virtual_measurements = [state_2(1:2)' - state_1(1:2)'; %odom 
+        rad2deg(atan2(ly1 - y1, lx1 - x1));
+        sqrt((state_1(1) - lx1)^2 + (state_1(2) - ly1)^2)];                    %heading
+error_function =  [odomx1; odomy1; theta1; dist1] - virtual_measurements;
+j_error = jacobian(error_function, [x1, y1, x2, y2, lx1, ly1])
