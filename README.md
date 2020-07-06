@@ -5,8 +5,14 @@ It is helpful in MATLAB to be able to generate Jacobians for any of these functi
 
 ### Heading SLAM
 Environment for spoofing odometry and landmark measurements in 2D. Spline trajectories with waypoints for easy testing/observation of covariances if provided.
-![Alt text](images/spoof.png?raw=true "Title")
+
+<img src="images/sim.gif" >
+<img src="images/gt_vs_estimate.jpg" >
+
+
+
 
 ### Transform Sandbox
 Quaternion state space and helper functions for transforms
-![Alt text](images/transforms.png?raw=true "Title")
+
+<img src="images/transforms.png" >
