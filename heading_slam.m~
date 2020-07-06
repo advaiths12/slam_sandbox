@@ -77,8 +77,8 @@ while(norm(d_x) > 10 && iter < max_iters)
     %populate jacobian
     for ts = 1:length(gt_xq)
         %insert motion jacobian second constraint
-        jacobian(4*ts-1:4*ts, 2*ts-1:2*ts) = -eye(2);
-        jacobian(4*ts-1:4*ts, 2*ts+1:2*ts+2) = eye(2);
+        jacobian(4*ts-1:4*ts, 2*ts-1:2*ts) = eye(2);
+        jacobian(4*ts-1:4*ts, 2*ts+1:2*ts+2) = -eye(2);
 
         lx = estimate(end-1);
         ly = estimate(end);
@@ -91,22 +91,20 @@ while(norm(d_x) > 10 && iter < max_iters)
                                     wrapToPi(atan2(ly - y_ts, lx - x_ts));
                                     sqrt((ly - y_ts)^2 + (lx - x_ts)^2)];
         %insert landmark jacobian
-        jacobian(4*ts+1, 2*ts-1:2*ts) = [(ly - y_ts)/((lx - x_ts)^2 + (ly - y_ts)^2), -(lx - x_ts)/((lx - x_ts)^2 + (ly - y_ts)^2)];
-        jacobian(4*ts+1, end-1:end) = [-(ly - y_ts)/((lx - x_ts)^2 + (ly - y_ts)^2), (lx - x_ts)/((lx - x_ts)^2 + (ly - y_ts)^2)];
+        jacobian(4*ts+1, 2*ts-1:2*ts) = [-(ly - y_ts)/((lx - x_ts)^2 + (ly - y_ts)^2), (lx - x_ts)/((lx - x_ts)^2 + (ly - y_ts)^2)];
+        jacobian(4*ts+1, end-1:end) = [(ly - y_ts)/((lx - x_ts)^2 + (ly - y_ts)^2), -(lx - x_ts)/((lx - x_ts)^2 + (ly - y_ts)^2)];
         jacobian(4*ts+2, 2*ts-1:2*ts) = [-(2*lx - 2*x_ts)/(2*((lx - x_ts)^2 + (ly - y_ts)^2)^(1/2)), -(2*ly - 2*y_ts)/(2*((lx - x_ts)^2 + (ly - y_ts)^2)^(1/2))];
         jacobian(4*ts+2, end-1:end) = [(2*lx - 2*x_ts)/(2*((lx - x_ts)^2 + (ly - y_ts)^2)^(1/2)), (2*ly - 2*y_ts)/(2*((lx - x_ts)^2 + (ly - y_ts)^2)^(1/2))];
     end
 
+    virtual_obs = [virtual_obs]; %add prior
     H = (jacobian'*system_information)';
     H(1:2, 1:2) = eye(2);
-    error_vector = (observations - virtual_obs);
-    for deg = 5:4:length(error_vector)
-        error_vector(deg) = wrapToPi(error_vector(deg));
-    end
-    error_vector = (error_vector'*system_information)';
-    
+    error_vector = -((observations - virtual_obs)'*system_information)';
     err_score = norm(error_vector);
-    
+%     for deg = 5:3:length(error_vector)
+%         error_vector(deg) = wrapToPi(error_vector(deg));
+%     end
     H = sparse(H);
     H(isinf(H)|isnan(H)) = 0;
     [R, flag, p] = chol(H'*H);
