@@ -1,10 +1,10 @@
 %generate spoofed odometry, landmark data
-odom_covariance = [.009, 0; 
-                    0, .011];
-measurement_covariance = [.0745, 0; 
-                           0, .11];
+odom_covariance = [.01, 0; 
+                    0, .01];
+measurement_covariance = [.01, 0; 
+                           0, .01];
 
-factor_information = inv(diag([diag(odom_covariance); diag(measurement_covariance)]));
+factor_information = sqrt(inv(diag([diag(odom_covariance); diag(measurement_covariance)])));
 
 time_steps = 30;
 landmark_location = [3, 5];
@@ -56,12 +56,15 @@ landmark_state_dim = 2;
 
 estimate = zeros(2*(length(gt_xq)+1) + landmark_state_dim, 1);
 for t = 1:length(gt_xq)
-    estimate(2*t+1:2*t+2) = estimate(2*t-1:2*t) + noisy_odom(t,:)';
-    
+    estimate(4*t-2:4*t) = estimate(2*t-1:2*t) + noisy_odom(t,:)';
+    %estimate(4*t+1:4*t+2) = [
 end
 estimate(end-1:end) = [3.5, 4.6];
 d_x = ones(size(estimate));
-while(norm(d_x) > 10)
+prev_error = inf;
+max_iters= 10;
+iter = 0;
+while(norm(d_x) > 10 && iter < max_iters)
     jacobian = zeros(measurement_dim*length(gt_xq) + 2, 2*(length(gt_xq)+1) + landmark_state_dim);
     jacobian(1:2,1:2) = eye(2);
     observations = reshape([noisy_odom';noisy_heading';noisy_distance'], measurement_dim*length(gt_xq), 1);
@@ -79,13 +82,13 @@ while(norm(d_x) > 10)
 
         lx = estimate(end-1);
         ly = estimate(end);
-        x_ts = estimate(2*ts+1);
-        y_ts = estimate(2*ts+2);
-        x_ts_next = estimate(2*ts+3);
-        y_ts_next = estimate(2*ts+4);
+        x_ts = estimate(2*ts-1);
+        y_ts = estimate(2*ts);
+        x_ts_next = estimate(2*ts+1);
+        y_ts_next = estimate(2*ts+2);
         virtual_obs(4*ts-1:4*ts+2) = [x_ts_next - x_ts;
                                     y_ts_next - y_ts;
-                                    atan2(ly - y_ts, lx - x_ts);
+                                    wrapToPi(atan2(ly - y_ts, lx - x_ts));
                                     sqrt((ly - y_ts)^2 + (lx - x_ts)^2)];
         %insert landmark jacobian
         jacobian(4*ts+1, 2*ts-1:2*ts) = [-(ly - y_ts)/((lx - x_ts)^2 + (ly - y_ts)^2), (lx - x_ts)/((lx - x_ts)^2 + (ly - y_ts)^2)];
@@ -95,16 +98,26 @@ while(norm(d_x) > 10)
     end
 
     virtual_obs = [virtual_obs]; %add prior
-    H = jacobian'*jacobian;
+    H = (jacobian'*system_information)';
     H(1:2, 1:2) = eye(2);
-    error_vector = -((observations - virtual_obs)'*jacobian)'; 
-    [R,p] = chol(H'*H);
+    error_vector = -((observations - virtual_obs)'*system_information)';
+    err_score = norm(error_vector);
+    for deg = 5:3:length(error_vector)
+        error_vector(deg) = wrapToPi(error_vector(deg));
+    end
+    H = sparse(H);
+    H(isinf(H)|isnan(H)) = 0;
+    [R, flag, p] = chol(H'*H);
 
     %solve R'y = A'b forward substitution
     %solve Rx = y backward substitution
-    y = forwardSubstitution(R', H'*error_vector, size(H', 1));
-    d_x = backSubstitution(R, y, size(y, 1));
-    estimate = estimate + d_x;
+    y = forwardSubstitution(R', p'*H'*error_vector, size(H', 1));
+    d_x = p*backSubstitution(R, y, size(y, 1));
+    if(prev_error > err_score)
+        estimate = estimate + d_x;
+    end
+    prev_error = err_score;
+    iter = iter + 1;
 end
 
 
