@@ -59,6 +59,7 @@ for t = 1:length(gt_xq)
     delete(l2);
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 measurement_dim = 4;
 state_space_dim = 2;
 landmark_state_dim = 2;
@@ -73,6 +74,7 @@ prev_error = inf;
 max_iters= 10;
 iter = 0;
 mu = 2;
+tic
 while(prev_error > 1E-5 && iter < max_iters)
     jacobian = zeros(measurement_dim*length(gt_xq) + 2, 2*(length(gt_xq)+1) + landmark_state_dim);
     jacobian(1:2,1:2) = eye(2);
@@ -141,7 +143,7 @@ while(prev_error > 1E-5 && iter < max_iters)
     prev_error = err_score;
     iter = iter + 1;
 end
-
+toc
 fprintf('RMSE: %f', sqrt(sum((estimate(3:end) - gt_path).^2)/length(gt_path)));
 figure();
 hold on; 

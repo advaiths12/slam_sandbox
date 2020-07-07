@@ -36,21 +36,8 @@ function [x] = transform_to_state(tf)
     x = [position;orientation'];
 end
 
-function [tf] = state_to_transform(x)
-    translation = x(1:3);
-    rotation = quat2rotm(x(4:7)');
-    tf = [[rotation; 0, 0, 0], [translation; 1]];
-end
-
-function [] = plot_point(pt)
-    scatter3(pt(1), pt(2), pt(3), "filled");
-end
-
 function [tf] = get_transform_between_global_tfs(tf0, tf1)
     tf = tf1*inv(tf0);
 
 end
 
-function [] = plot_frame(Rt_mat)
-    quiver3(repmat(Rt_mat(1, 4), 1, 3), repmat(Rt_mat(2, 4), 1, 3), repmat(Rt_mat(3, 4), 1, 3), [Rt_mat(1, 1:3)], [Rt_mat(2, 1:3)], [Rt_mat(3, 1:3)],'linewidth',2);
-end
