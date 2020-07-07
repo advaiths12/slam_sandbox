@@ -5,3 +5,4 @@ function [tf] = get_tf_between_states(x0, x1) %prediction function
     rot =  mul_quat(q1, conj_quat(q0));
     tf = [trans;rot];
 end
+

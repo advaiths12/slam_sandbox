@@ -72,6 +72,7 @@ d_x = ones(size(estimate));
 prev_error = inf;
 max_iters= 10;
 iter = 0;
+mu = 2;
 while(prev_error > 1E-5 && iter < max_iters)
     jacobian = zeros(measurement_dim*length(gt_xq) + 2, 2*(length(gt_xq)+1) + landmark_state_dim);
     jacobian(1:2,1:2) = eye(2);
@@ -117,9 +118,9 @@ while(prev_error > 1E-5 && iter < max_iters)
     
     err_score = norm(error_vector);
     
-    H = sparse(H);
+    A = sparse(H'*H + eye(size(H',1))*mu);
     H(isinf(H)|isnan(H)) = 0;
-    [R, flag, p] = chol(H'*H);
+    [R, flag, p] = chol(A);
 
     %solve R'y = A'b forward substitution
     %solve Rx = y backward substitution
@@ -133,6 +134,9 @@ while(prev_error > 1E-5 && iter < max_iters)
 
     if(prev_error > err_score)
         estimate = estimate + d_x;
+        mu = mu * 2;
+    else
+        mu = mu / 2;
     end
     prev_error = err_score;
     iter = iter + 1;
