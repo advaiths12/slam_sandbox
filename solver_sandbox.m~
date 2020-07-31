@@ -22,11 +22,11 @@ display("Jacobian wrt. State and Landmark");
 display(j2);
 
 syms x1 y1 x2 y2 lx1 ly1 real; %variables
-syms theta1 theta2 odomx1 odomy1 dist1 vx1 vy1 real ; %factors
+syms theta1 theta2 odomx1 odomy1 dist1 real vx1; %factors
 state_1 = [x1, y1, lx1, ly1];
 state_2 = [x2, y2, lx1, ly1];
 virtual_measurements = [state_2(1:2)' - state_1(1:2)'; %odom 
         lx1 - x1;
         ly1 - y1];                    %heading
-error_function =  [odomx1; odomy1; vx1 ; vy1] - virtual_measurements;
+error_function =  [odomx1; odomy1; ; dist1] - virtual_measurements;
 j_error = jacobian(error_function, [x1, y1, x2, y2, lx1, ly1])
