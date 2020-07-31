@@ -1,12 +1,12 @@
 %generate spoofed odometry, landmark data
 
 % x, y
-odom_covariance = [10, 0; 
-                    0, 10];
+odom_covariance = [10000, 0; 
+                    0, 10000];
                 
 %heading and distance
-measurement_covariance = [.5, 0; 
-                           0, .5];
+measurement_covariance = [25, 0; 
+                           0,25];
 
 factor_information = sqrt(inv(diag([diag(odom_covariance); diag(measurement_covariance)])));
 
@@ -28,8 +28,8 @@ for waypoint = 1:(length(start_x)-1)
 end
 
 %generate noises
-odom_noise = mvnrnd([0, 0], odom_covariance, length(gt_xq));
-measurement_noise = mvnrnd([0, 0], measurement_covariance, length(gt_xq));
+odom_noise = mvnrnd([0, 0], sqrt(odom_covariance) ./ 100, length(gt_xq));
+measurement_noise = mvnrnd([0, 0], sqrt(measurement_covariance), length(gt_xq));
 
 gt_path = [reshape([gt_xq', gt_yq']', 2*length(gt_xq), 1); landmark_location'];
 noisy_path = [gt_xq', gt_yq'];
@@ -157,6 +157,8 @@ while(prev_error > 1E-5 && iter < max_iters)
     iter = iter + 1;
 end
 toc
+res  = reshape(virtual_obs(3:end), 4, length(gt_xq))
+nois_path = cumsum(res(1:2, :));
 fprintf('RMSE: %f', sqrt(sum((estimate(3:end) - gt_path).^2)/length(gt_path)));
 figure();
 hold on; 
@@ -165,6 +167,7 @@ est_r = reshape(estimate(3:end), 2, length(estimate(3:end))/2);
 est_pose = est_r(:,1:end-1);
 est_landmark = est_r(:,end);
 plot(est_pose(1,:), est_pose(2,:), ':.r'); 
+plot(nois_path(1,:), nois_path(2,:), ':.b');
 plot(est_landmark(1), est_landmark(2), 'or');
 plot(gt_xq, gt_yq, ':.g'); 
 plot(landmark_location(1), landmark_location(2), 'og');
